@@ -2,17 +2,34 @@
   <q-page class="row q-pt-xl">
     <div class="full-width q-px-xl">
       <div class="q-mb-xl">
-        <q-input v-model="tempData.name" label="姓名" />
-        <q-input v-model="tempData.age" label="年齡" />
+        <q-input
+          v-model="tempData.name"
+          label="姓名"
+          error-message="Name is Required"
+          :error="!nameIsValid"
+        />
+        <q-input
+          v-model="tempData.age"
+          label="年齡"
+          :error-message="ageErrMsg"
+          :error="!ageIsValid"
+        />
         <q-btn
           v-if="isEditMode"
           color="primary"
           class="q-mt-md"
           @click="editUser"
+          :disabled="!nameIsValid || !ageIsValid"
         >
           修改
         </q-btn>
-        <q-btn v-else color="primary" class="q-mt-md" @click="addUser">
+        <q-btn
+          v-else
+          color="primary"
+          class="q-mt-md"
+          @click="addUser"
+          :disabled="!nameIsValid || !ageIsValid"
+        >
           新增
         </q-btn>
       </div>
@@ -89,7 +106,7 @@
 
 <script setup lang="ts">
 import { QTableProps } from 'quasar';
-import { onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import apiUser from '../api/user';
 
 interface btnType {
@@ -141,7 +158,31 @@ onMounted(() => {
   apiUser.getAll().then((res) => (blockData.value = res));
 });
 
+const nameIsValid = computed(() => !!tempData.value.name);
+const ageIsValid = computed(() => {
+  if (!tempData.value.age) return false;
+  try {
+    return parseInt(tempData.value.age) > 0;
+  } catch (e) {
+    return false;
+  }
+});
+
+const ageErrMsg = computed(() => {
+  if (!tempData.value.age) return 'Age is Required';
+  try {
+    const age = parseInt(tempData.value.age);
+    if (isNaN(age)) return 'Age must be a number';
+    else if (parseInt(tempData.value.age) > 0) return '';
+    else return 'Age must be greater than 0';
+  } catch (e) {
+    return 'Age must be a number';
+  }
+});
+
 function editUser() {
+  if (!nameIsValid.value || !ageIsValid.value) return;
+
   apiUser
     .update({
       id: tempData.value.id,
@@ -156,6 +197,8 @@ function editUser() {
 }
 
 function addUser() {
+  if (!nameIsValid.value || !ageIsValid.value) return;
+
   apiUser
     .create({
       name: tempData.value.name,
