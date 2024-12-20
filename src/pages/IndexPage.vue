@@ -4,7 +4,17 @@
       <div class="q-mb-xl">
         <q-input v-model="tempData.name" label="姓名" />
         <q-input v-model="tempData.age" label="年齡" />
-        <q-btn color="primary" class="q-mt-md">新增</q-btn>
+        <q-btn
+          v-if="isEditMode"
+          color="primary"
+          class="q-mt-md"
+          @click="editUser"
+        >
+          修改
+        </q-btn>
+        <q-btn v-else color="primary" class="q-mt-md" @click="addUser">
+          新增
+        </q-btn>
       </div>
 
       <q-table
@@ -78,14 +88,17 @@
 </template>
 
 <script setup lang="ts">
-import axios from 'axios';
 import { QTableProps } from 'quasar';
-import { ref } from 'vue';
+import { onMounted, ref } from 'vue';
+import apiUser from '../api/user';
+
 interface btnType {
   label: string;
   icon: string;
   status: string;
 }
+
+const isEditMode = ref(false);
 const blockData = ref([
   {
     name: 'test',
@@ -123,8 +136,50 @@ const tempData = ref({
   name: '',
   age: '',
 });
-function handleClickOption(btn, data) {
+
+onMounted(() => {
+  apiUser.getAll().then((res) => (blockData.value = res));
+});
+
+function editUser() {
+  apiUser
+    .update({
+      id: tempData.value.id,
+      name: tempData.value.name,
+      age: parseInt(tempData.value.age),
+    })
+    .then(() => {
+      isEditMode.value = false;
+      tempData.value = { name: '', age: '' };
+      apiUser.getAll().then((res) => (blockData.value = res));
+    });
+}
+
+function addUser() {
+  apiUser
+    .create({
+      name: tempData.value.name,
+      age: parseInt(tempData.value.age),
+    })
+    .then(() => {
+      tempData.value = { name: '', age: '' };
+      apiUser.getAll().then((res) => (blockData.value = res));
+    });
+}
+
+function handleClickOption(btn: btnType, data) {
   // ...
+
+  if (btn.status === 'edit') {
+    isEditMode.value = true;
+    tempData.value = { ...data };
+  }
+
+  if (btn.status === 'delete') {
+    apiUser.delete(data.id).then(() => {
+      apiUser.getAll().then((res) => (blockData.value = res));
+    });
+  }
 }
 </script>
 
