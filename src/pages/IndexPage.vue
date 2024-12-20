@@ -46,7 +46,7 @@
         :rows-per-page-options="[0]"
       >
         <template v-slot:header="props">
-          <q-tr :props="props">
+          <q-tr :props="props" style="background-color: blue; color: white">
             <q-th v-for="col in props.cols" :key="col.name" :props="props">
               {{ col.label }}
             </q-th>
@@ -108,8 +108,9 @@
 import { QTableProps } from 'quasar';
 import { computed, onMounted, ref } from 'vue';
 import apiUser from '../api/user';
-import { useQuasar } from 'quasar'
-const $q = useQuasar()
+import { useQuasar } from 'quasar';
+
+const $q = useQuasar();
 
 interface btnType {
   label: string;
@@ -130,12 +131,15 @@ const tableConfig = ref([
     name: 'name',
     field: 'name',
     align: 'left',
+    sortable: true,
   },
   {
     label: '年齡',
     name: 'age',
     field: 'age',
     align: 'left',
+    sortable: true,
+    sort: (a: number, b: number) => a - b,
   },
 ]);
 const tableButtons = ref([
@@ -221,25 +225,26 @@ function handleClickOption(btn: btnType, data) {
   }
 
   if (btn.status === 'delete') {
-
     $q.dialog({
       title: '提示',
       message: '是否確定刪除該筆資料?',
       ok: '確定',
       cancel: '取消',
-      persistent: true
-    }).onOk(() => {
-      // console.log('>>>> OK')
-
-      apiUser.delete(data.id).then(() => {
-        apiUser.getAll().then((res) => (blockData.value = res));
-      });
-
-    }).onCancel(() => {
-      // console.log('>>>> Cancel')
-    }).onDismiss(() => {
-      // console.log('I am triggered on both OK and Cancel')
+      persistent: true,
     })
+      .onOk(() => {
+        // console.log('>>>> OK')
+
+        apiUser.delete(data.id).then(() => {
+          apiUser.getAll().then((res) => (blockData.value = res));
+        });
+      })
+      .onCancel(() => {
+        // console.log('>>>> Cancel')
+      })
+      .onDismiss(() => {
+        // console.log('I am triggered on both OK and Cancel')
+      });
   }
 }
 </script>
