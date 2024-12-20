@@ -108,6 +108,8 @@
 import { QTableProps } from 'quasar';
 import { computed, onMounted, ref } from 'vue';
 import apiUser from '../api/user';
+import { useQuasar } from 'quasar'
+const $q = useQuasar()
 
 interface btnType {
   label: string;
@@ -219,9 +221,25 @@ function handleClickOption(btn: btnType, data) {
   }
 
   if (btn.status === 'delete') {
-    apiUser.delete(data.id).then(() => {
-      apiUser.getAll().then((res) => (blockData.value = res));
-    });
+
+    $q.dialog({
+      title: '提示',
+      message: '是否確定刪除該筆資料?',
+      ok: '確定',
+      cancel: '取消',
+      persistent: true
+    }).onOk(() => {
+      // console.log('>>>> OK')
+
+      apiUser.delete(data.id).then(() => {
+        apiUser.getAll().then((res) => (blockData.value = res));
+      });
+
+    }).onCancel(() => {
+      // console.log('>>>> Cancel')
+    }).onDismiss(() => {
+      // console.log('I am triggered on both OK and Cancel')
+    })
   }
 }
 </script>
