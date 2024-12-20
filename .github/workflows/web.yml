@@ -45,7 +45,7 @@ jobs:
 
       # Runs a single command using the runners shell
       - name: try to build the project
-        run: quasar build
+        run: npm run build
 
       # use actions-gh-pages to deploy dist to gh-pages
       - name: Deploy
